@@ -12,6 +12,7 @@ def prefixed_key(f):
     Prefixes any string that the decorated method `f` returns with the value of
     the `prefix` attribute on the owner object `self`.
     """
+
     def prefixed_method(self, *args, **kwargs):
         key = f(self, *args, **kwargs)
         return f"{self.prefix}:{key}"
@@ -26,6 +27,7 @@ class KeySchema:
     These key names are used by the DAO classes. This class therefore contains
     a reference to all possible key names used by this application.
     """
+
     def __init__(self, prefix: str = DEFAULT_KEY_PREFIX):
         self.prefix = prefix
 

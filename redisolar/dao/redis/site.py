@@ -8,10 +8,12 @@ from redisolar.schema import FlatSiteSchema
 
 
 class SiteDaoRedis(SiteDaoBase, RedisDaoBase):
-    """SiteDaoRedis persists Site models to Redis.
+    """
+    SiteDaoRedis persists Site models to Redis.
 
     This class allows persisting (and querying for) Sites in Redis.
     """
+
     def insert(self, site: Site, **kwargs):
         """Insert a Site into Redis."""
         hash_key = self.key_schema.site_hash_key(site.id)
@@ -36,9 +38,11 @@ class SiteDaoRedis(SiteDaoBase, RedisDaoBase):
 
     def find_all(self, **kwargs) -> Set[Site]:
         """Find all Sites in Redis."""
-        # START Challenge #1
-        # Remove this line when you've written code to build `site_hashes`.
-        site_hashes = []  # type: ignore
-        # END Challenge #1
+        ids_key = self.key_schema.site_ids_key()
+        site_ids = self.redis.smembers(ids_key)
+        site_hashes = []
+        for site_id in site_ids:
+            site_key = self.key_schema.site_hash_key(site_id)
+            site_hashes.append(self.redis.hgetall(site_key))
 
         return {FlatSiteSchema().load(site_hash) for site_hash in site_hashes}
