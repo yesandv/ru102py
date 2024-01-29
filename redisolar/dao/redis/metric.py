@@ -23,6 +23,7 @@ class MeasurementMinute:
 
     Also rounds decimals before storing them.
     """
+
     def __init__(self, measurement: float, minute_of_day: int):
         self.measurement = measurement
         self.minute_of_day = minute_of_day
@@ -35,7 +36,8 @@ class MeasurementMinute:
             return MeasurementMinute(float(parts[0]), int(parts[1]))
 
         raise ValueError(
-            "Cannot convert zset_value {} to MeasurementMinute".format(zset_value))
+            "Cannot convert zset_value {} to MeasurementMinute".format(zset_value)
+        )
 
     def __str__(self) -> str:
         return f"{self.measurement:.2f}:{self.minute_of_day}"
@@ -74,7 +76,8 @@ class MetricDaoRedis(MetricDaoBase, RedisDaoBase):
                 Measurement(site_id=site_id,
                             metric_unit=unit,
                             timestamp=date,
-                            value=mm.measurement))
+                            value=mm.measurement)
+            )
 
         return measurements
 
@@ -96,10 +99,10 @@ class MetricDaoRedis(MetricDaoBase, RedisDaoBase):
         return start + datetime.timedelta(minutes=day_minute)
 
     def insert(self, meter_reading: MeterReading, **kwargs) -> None:
-        pipeline = kwargs.get('pipeline')
+        pipeline = kwargs.get("pipeline")
         execute = False
 
-        if pipeline is None:
+        if not pipeline:
             execute = True
             pipeline = self.redis.pipeline()
 
@@ -116,11 +119,10 @@ class MetricDaoRedis(MetricDaoBase, RedisDaoBase):
     def insert_metric(self, site_id: int, value: float, unit: MetricUnit,
                       time: datetime.datetime, pipeline: redis.client.Pipeline):
         """Insert a specific metric."""
-        metric_key = self.key_schema.day_metric_key(site_id, unit, time)  # pylint: disable=unused-variable
-        minute_of_day = self._get_day_minute(time) # pylint: disable=unused-variable
+        metric_key = self.key_schema.day_metric_key(site_id, unit, time)
+        minute_of_day = self._get_day_minute(time)
 
-        # START Challenge #2
-        # END Challenge #2
+        pipeline.zadd(metric_key, mapping={f"{MeasurementMinute(value, minute_of_day)}": minute_of_day})
 
     def get_recent(self, site_id: int, unit: MetricUnit, time: datetime.datetime,
                    limit: int, **kwargs) -> Deque[Measurement]:
